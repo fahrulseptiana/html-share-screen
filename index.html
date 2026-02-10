@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Screen Share | Minimal</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Oxygen, Ubuntu, sans-serif;
+      }
+
+      body {
+        background-color: #ede4c2;
+        color: #1a1a1a;
+        min-height: 100vh;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 24px;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 48px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(37, 79, 34, 0.1);
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 300;
+        margin-bottom: 8px;
+        color: #254f22;
+        letter-spacing: -0.5px;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+        color: #666;
+        font-weight: 400;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 40px;
+        margin-bottom: 48px;
+      }
+
+      @media (max-width: 900px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .control-panel {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(37, 79, 34, 0.1);
+      }
+
+      .video-container {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(37, 79, 34, 0.1);
+      }
+
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin-bottom: 24px;
+        color: #254f22;
+      }
+
+      .video-wrapper {
+        width: 100%;
+        height: 360px;
+        background: #f8f8f8;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px dashed rgba(37, 79, 34, 0.2);
+      }
+
+      .video-wrapper:hover {
+        border-color: #254f22;
+      }
+
+      #screenVideo {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #000;
+      }
+
+      .video-placeholder {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #f8f8f8;
+        color: #666;
+        text-align: center;
+        padding: 40px;
+      }
+
+      .video-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        color: rgba(37, 79, 34, 0.3);
+      }
+
+      .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      button {
+        padding: 16px 24px;
+        font-size: 1rem;
+        font-weight: 500;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color: #333;
+      }
+
+      #shareBtn {
+        background: #254f22;
+        color: white;
+        border: none;
+      }
+
+      #shareBtn:hover:not(:disabled) {
+        background: #2e652a;
+        transform: translateY(-1px);
+      }
+
+      #stopBtn {
+        background: #a03a13;
+        color: white;
+        border: none;
+      }
+
+      #stopBtn:hover:not(:disabled) {
+        background: #b9461a;
+        transform: translateY(-1px);
+      }
+
+      #fullscreenBtn {
+        background: #f5824a;
+        color: #1a1a1a;
+        border: none;
+      }
+
+      #fullscreenBtn:hover:not(:disabled) {
+        background: #ff945d;
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        background: #f0f0f0;
+        color: #999;
+        cursor: not-allowed;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .status {
+        margin-top: 24px;
+        padding: 16px;
+        border-radius: 12px;
+        text-align: center;
+        font-size: 0.95rem;
+        background: #f8f8f8;
+        color: #666;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .status.sharing {
+        background: rgba(37, 79, 34, 0.08);
+        color: #254f22;
+      }
+
+      .status.not-sharing {
+        background: rgba(160, 58, 19, 0.08);
+        color: #a03a13;
+      }
+
+      .instructions {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(37, 79, 34, 0.1);
+      }
+
+      .instructions h3 {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 20px;
+        color: #254f22;
+      }
+
+      .instructions ol {
+        padding-left: 20px;
+        line-height: 1.6;
+        color: #555;
+      }
+
+      .instructions li {
+        margin-bottom: 12px;
+      }
+
+      .instructions strong {
+        color: #254f22;
+        font-weight: 500;
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 48px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(37, 79, 34, 0.1);
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      /* Fullscreen mode */
+      .video-wrapper.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1000;
+        border-radius: 0;
+        border: none;
+        background: #000;
+      }
+
+      .fullscreen-close {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 1001;
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        border: none;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .fullscreen-close:hover {
+        background: white;
+        transform: scale(1.1);
+      }
+
+      .fullscreen-close.active {
+        display: flex;
+      }
+
+      .keyboard-shortcuts {
+        margin-top: 24px;
+        padding: 16px;
+        background: #f8f8f8;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .keyboard-shortcuts h4 {
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+        color: #254f22;
+      }
+
+      .shortcut {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .shortcut:last-child {
+        border-bottom: none;
+      }
+
+      .key {
+        background: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        font-family: monospace;
+        font-size: 0.85rem;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Screen Share</h1>
+        <p class="subtitle">
+          A minimalist tool to share your screen with fullscreen preview
+        </p>
+      </header>
+
+      <div class="main-content">
+        <div class="control-panel">
+          <h2>Controls</h2>
+          <p style="color: #666; margin-bottom: 24px; line-height: 1.6">
+            Share your screen, a specific window, or a browser tab. Preview in
+            fullscreen mode with one click.
+          </p>
+
+          <div class="button-group">
+            <button id="shareBtn">
+              <i class="fas fa-share-alt"></i> Share Screen
+            </button>
+            <button id="stopBtn" disabled>
+              <i class="fas fa-stop"></i> Stop Sharing
+            </button>
+            <button id="fullscreenBtn" disabled>
+              <i class="fas fa-expand"></i> Fullscreen
+            </button>
+          </div>
+
+          <div id="status" class="status not-sharing">
+            <i class="fas fa-circle"></i> Ready to share
+          </div>
+
+          <div class="keyboard-shortcuts">
+            <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
+            <div class="shortcut">
+              <span>Start sharing</span>
+              <span class="key">Ctrl+Shift+S</span>
+            </div>
+            <div class="shortcut">
+              <span>Stop sharing</span>
+              <span class="key">Ctrl+Shift+X</span>
+            </div>
+            <div class="shortcut">
+              <span>Fullscreen toggle</span>
+              <span class="key">F</span>
+            </div>
+            <div class="shortcut">
+              <span>Exit fullscreen</span>
+              <span class="key">ESC</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="video-container">
+          <h2>Preview</h2>
+          <div class="video-wrapper" id="videoWrapper">
+            <video id="screenVideo" autoplay playsinline></video>
+            <div id="videoPlaceholder" class="video-placeholder">
+              <i class="fas fa-desktop"></i>
+              <p style="margin-bottom: 8px; font-weight: 500">
+                No screen selected
+              </p>
+              <p style="color: #999; font-size: 0.95rem">
+                Click "Share Screen" to begin
+              </p>
+            </div>
+          </div>
+          <p style="color: #666; font-size: 0.95rem">
+            Click the preview to enter fullscreen mode. Press ESC or the close
+            button to exit.
+          </p>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <h3>How to Use</h3>
+        <ol>
+          <li>
+            Click <strong>"Share Screen"</strong> and select what to share
+          </li>
+          <li>Click <strong>"Share"</strong> in the browser dialog</li>
+          <li><strong>Click the preview</strong> to enter fullscreen mode</li>
+          <li>
+            Use <strong>ESC</strong> or the close button to exit fullscreen
+          </li>
+          <li>Click <strong>"Stop Sharing"</strong> when finished</li>
+        </ol>
+      </div>
+
+      <div class="footer">
+        <p>© 2023 Screen Share Tool | Works in all modern browsers</p>
+      </div>
+
+      <button class="fullscreen-close" id="fullscreenCloseBtn">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <script>
+      // DOM Elements
+      const shareBtn = document.getElementById('shareBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      const screenVideo = document.getElementById('screenVideo');
+      const videoPlaceholder = document.getElementById('videoPlaceholder');
+      const videoWrapper = document.getElementById('videoWrapper');
+      const statusDiv = document.getElementById('status');
+      const fullscreenCloseBtn = document.getElementById('fullscreenCloseBtn');
+
+      // Variables to track screen sharing state
+      let mediaStream = null;
+      let isSharing = false;
+      let isFullscreen = false;
+
+      // Update UI based on sharing state
+      function updateUI() {
+        if (isSharing) {
+          shareBtn.disabled = true;
+          stopBtn.disabled = false;
+          fullscreenBtn.disabled = false;
+          videoPlaceholder.style.display = 'none';
+          screenVideo.style.display = 'block';
+          statusDiv.innerHTML =
+            '<i class="fas fa-circle" style="color: #254F22;"></i> Sharing active';
+          statusDiv.className = 'status sharing';
+        } else {
+          shareBtn.disabled = false;
+          stopBtn.disabled = true;
+          fullscreenBtn.disabled = true;
+          videoPlaceholder.style.display = 'flex';
+          screenVideo.style.display = 'none';
+          statusDiv.innerHTML =
+            '<i class="fas fa-circle" style="color: #A03A13;"></i> Ready to share';
+          statusDiv.className = 'status not-sharing';
+
+          if (mediaStream) {
+            mediaStream.getTracks().forEach((track) => track.stop());
+            mediaStream = null;
+          }
+
+          exitFullscreen();
+        }
+      }
+
+      // Start screen sharing
+      async function startScreenSharing() {
+        try {
+          if (!navigator.mediaDevices?.getDisplayMedia) {
+            alert('Your browser does not support screen sharing.');
+            return;
+          }
+
+          mediaStream = await navigator.mediaDevices.getDisplayMedia({
+            video: { cursor: 'always' },
+            audio: false,
+          });
+
+          screenVideo.srcObject = mediaStream;
+          isSharing = true;
+          updateUI();
+
+          mediaStream.getVideoTracks()[0].onended = () => {
+            stopScreenSharing();
+          };
+        } catch (error) {
+          console.error('Error:', error);
+          if (error.name === 'NotAllowedError') {
+            alert('Permission was denied. Please allow screen sharing.');
+          }
+          isSharing = false;
+          updateUI();
+        }
+      }
+
+      // Stop screen sharing
+      function stopScreenSharing() {
+        isSharing = false;
+        updateUI();
+      }
+
+      // Toggle fullscreen
+      function toggleFullscreen() {
+        if (!isSharing) return;
+
+        if (!isFullscreen) {
+          enterFullscreen();
+        } else {
+          exitFullscreen();
+        }
+      }
+
+      // Enter fullscreen
+      function enterFullscreen() {
+        if (!isSharing) return;
+
+        videoWrapper.classList.add('fullscreen');
+        fullscreenCloseBtn.classList.add('active');
+        isFullscreen = true;
+        fullscreenBtn.innerHTML =
+          '<i class="fas fa-compress"></i> Exit Fullscreen';
+      }
+
+      // Exit fullscreen
+      function exitFullscreen() {
+        videoWrapper.classList.remove('fullscreen');
+        fullscreenCloseBtn.classList.remove('active');
+        isFullscreen = false;
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+      }
+
+      // Event listeners
+      shareBtn.addEventListener('click', startScreenSharing);
+      stopBtn.addEventListener('click', stopScreenSharing);
+      fullscreenBtn.addEventListener('click', toggleFullscreen);
+      fullscreenCloseBtn.addEventListener('click', exitFullscreen);
+
+      // Click video to enter fullscreen
+      videoWrapper.addEventListener('click', function (e) {
+        if (!isFullscreen && isSharing) {
+          enterFullscreen();
+        }
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.shiftKey && event.key === 'S') {
+          event.preventDefault();
+          if (!isSharing) startScreenSharing();
+        }
+
+        if (event.ctrlKey && event.shiftKey && event.key === 'X') {
+          event.preventDefault();
+          if (isSharing) stopScreenSharing();
+        }
+
+        if (event.key === 'f' || event.key === 'F') {
+          event.preventDefault();
+          if (isSharing) toggleFullscreen();
+        }
+
+        if (event.key === 'Escape') {
+          if (isFullscreen) exitFullscreen();
+        }
+      });
+
+      // Fullscreen change listeners
+      [
+        'fullscreenchange',
+        'webkitfullscreenchange',
+        'mozfullscreenchange',
+        'MSFullscreenChange',
+      ].forEach((event) =>
+        document.addEventListener(event, () => {
+          if (
+            !document.fullscreenElement &&
+            !document.webkitFullscreenElement &&
+            !document.mozFullScreenElement &&
+            !document.msFullscreenElement
+          ) {
+            if (isFullscreen) exitFullscreen();
+          }
+        })
+      );
+
+      // Initialize
+      updateUI();
+
+      window.addEventListener('load', () => {
+        if (!navigator.mediaDevices?.getDisplayMedia) {
+          statusDiv.innerHTML =
+            '<i class="fas fa-exclamation-triangle"></i> Browser not supported';
+          shareBtn.disabled = true;
+        }
+      });
+    </script>
+  </body>
+</html>
